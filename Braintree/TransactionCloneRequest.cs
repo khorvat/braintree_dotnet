@@ -11,6 +11,7 @@ namespace Braintree
     public class TransactionCloneRequest : Request
     {
         public Decimal Amount { get; set; }
+        public String Channel { get; set; }
         public TransactionOptionsCloneRequest Options { get; set; }
 
         public override String ToXml()
@@ -27,6 +28,7 @@ namespace Braintree
         {
             RequestBuilder builder = new RequestBuilder(root);
             builder.AddElement("amount", Amount);
+            builder.AddElement("channel", Channel);
             builder.AddElement("options", Options);
 
             return builder;

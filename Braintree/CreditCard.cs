@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 
 namespace Braintree
 {
-    [Serializable]
+	[Serializable]
     public class CreditCardCustomerLocation : Enumeration
     {
         public static readonly CreditCardCustomerLocation US = new CreditCardCustomerLocation("us");
@@ -20,7 +20,73 @@ namespace Braintree
         protected CreditCardCustomerLocation(String name) : base(name) {}
     }
 
-    [Serializable]
+	[Serializable]
+    public class CreditCardPrepaid : Enumeration
+    {
+        public static readonly CreditCardPrepaid YES = new CreditCardPrepaid("Yes");
+        public static readonly CreditCardPrepaid NO = new CreditCardPrepaid("No");
+        public static readonly CreditCardPrepaid UNKNOWN = new CreditCardPrepaid("Unknown");
+
+        public static readonly CreditCardPrepaid[] ALL = {YES, NO, UNKNOWN};
+
+        protected CreditCardPrepaid(String name) : base(name) {}
+    }
+	[Serializable]
+    public class CreditCardPayroll : Enumeration
+    {
+        public static readonly CreditCardPayroll YES = new CreditCardPayroll("Yes");
+        public static readonly CreditCardPayroll NO = new CreditCardPayroll("No");
+        public static readonly CreditCardPayroll UNKNOWN = new CreditCardPayroll("Unknown");
+
+        public static readonly CreditCardPayroll[] ALL = {YES, NO, UNKNOWN};
+
+        protected CreditCardPayroll(String name) : base(name) {}
+    }
+	[Serializable]
+    public class CreditCardDebit : Enumeration
+    {
+        public static readonly CreditCardDebit YES = new CreditCardDebit("Yes");
+        public static readonly CreditCardDebit NO = new CreditCardDebit("No");
+        public static readonly CreditCardDebit UNKNOWN = new CreditCardDebit("Unknown");
+
+        public static readonly CreditCardDebit[] ALL = {YES, NO, UNKNOWN};
+
+        protected CreditCardDebit(String name) : base(name) {}
+    }
+	[Serializable]
+    public class CreditCardCommercial : Enumeration
+    {
+        public static readonly CreditCardCommercial YES = new CreditCardCommercial("Yes");
+        public static readonly CreditCardCommercial NO = new CreditCardCommercial("No");
+        public static readonly CreditCardCommercial UNKNOWN = new CreditCardCommercial("Unknown");
+
+        public static readonly CreditCardCommercial[] ALL = {YES, NO, UNKNOWN};
+
+        protected CreditCardCommercial(String name) : base(name) {}
+    }
+	[Serializable]
+    public class CreditCardHealthcare : Enumeration
+    {
+        public static readonly CreditCardHealthcare YES = new CreditCardHealthcare("Yes");
+        public static readonly CreditCardHealthcare NO = new CreditCardHealthcare("No");
+        public static readonly CreditCardHealthcare UNKNOWN = new CreditCardHealthcare("Unknown");
+
+        public static readonly CreditCardHealthcare[] ALL = {YES, NO, UNKNOWN};
+
+        protected CreditCardHealthcare(String name) : base(name) {}
+    }
+	[Serializable]
+    public class CreditCardDurbinRegulated : Enumeration
+    {
+        public static readonly CreditCardDurbinRegulated YES = new CreditCardDurbinRegulated("Yes");
+        public static readonly CreditCardDurbinRegulated NO = new CreditCardDurbinRegulated("No");
+        public static readonly CreditCardDurbinRegulated UNKNOWN = new CreditCardDurbinRegulated("Unknown");
+
+        public static readonly CreditCardDurbinRegulated[] ALL = {YES, NO, UNKNOWN};
+
+        protected CreditCardDurbinRegulated(String name) : base(name) {}
+    }
+	[Serializable]
     public class CreditCardCardType : Enumeration
     {
         public static readonly CreditCardCardType AMEX = new CreditCardCardType("American Express");
@@ -67,6 +133,9 @@ namespace Braintree
     [Serializable]
     public class CreditCard
     {
+        public static readonly String CountryOfIssuanceUnknown = "Unknown";
+        public static readonly String IssuingBankUnknown = "Unknown";
+
         public String Bin { get; protected set; }
         public String CardholderName { get; protected set; }
         public CreditCardCardType CardType { get; protected set; }
@@ -83,6 +152,47 @@ namespace Braintree
         public Address BillingAddress { get; protected set; }
         public String ExpirationMonth { get; protected set; }
         public String ExpirationYear { get; protected set; }
+        public CreditCardPrepaid Prepaid { get; protected set; }
+        public CreditCardPayroll Payroll { get; protected set; }
+        public CreditCardDebit Debit { get; protected set; }
+        public CreditCardCommercial Commercial { get; protected set; }
+        public CreditCardHealthcare Healthcare { get; protected set; }
+        public CreditCardDurbinRegulated DurbinRegulated { get; protected set; }
+
+        private String _CountryOfIssuance;
+
+        public String CountryOfIssuance
+        {
+            get
+            {
+                if (_CountryOfIssuance == "")
+                {
+                    return CountryOfIssuanceUnknown;
+                }
+                else
+                {
+                    return _CountryOfIssuance;
+                }
+            }
+        }
+
+        private String _IssuingBank;
+
+        public String IssuingBank
+        {
+            get
+            {
+                if (_IssuingBank == "")
+                {
+                    return IssuingBankUnknown;
+                }
+                else
+                {
+                    return _IssuingBank;
+                }
+            }
+        }
+
         public String ExpirationDate
         {
             get
@@ -123,6 +233,14 @@ namespace Braintree
             CreatedAt = node.GetDateTime("created-at");
             UpdatedAt = node.GetDateTime("updated-at");
             BillingAddress = new Address(node.GetNode("billing-address"));
+            Prepaid = (CreditCardPrepaid)CollectionUtil.Find(CreditCardPrepaid.ALL, node.GetString("prepaid"), CreditCardPrepaid.UNKNOWN);
+            Payroll = (CreditCardPayroll)CollectionUtil.Find(CreditCardPayroll.ALL, node.GetString("payroll"), CreditCardPayroll.UNKNOWN);
+            DurbinRegulated = (CreditCardDurbinRegulated)CollectionUtil.Find(CreditCardDurbinRegulated.ALL, node.GetString("durbin-regulated"), CreditCardDurbinRegulated.UNKNOWN);
+            Debit = (CreditCardDebit)CollectionUtil.Find(CreditCardDebit.ALL, node.GetString("debit"), CreditCardDebit.UNKNOWN);
+            Commercial = (CreditCardCommercial)CollectionUtil.Find(CreditCardCommercial.ALL, node.GetString("commercial"), CreditCardCommercial.UNKNOWN);
+            Healthcare = (CreditCardHealthcare)CollectionUtil.Find(CreditCardHealthcare.ALL, node.GetString("healthcare"), CreditCardHealthcare.UNKNOWN);
+            _CountryOfIssuance = node.GetString("country-of-issuance");
+            _IssuingBank = node.GetString("issuing-bank");
 
             var subscriptionXmlNodes = node.GetList("subscriptions/subscription");
             Subscriptions = new Subscription[subscriptionXmlNodes.Count];

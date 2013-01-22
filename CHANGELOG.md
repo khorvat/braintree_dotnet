@@ -1,3 +1,24 @@
+## 2.20.0
+
+* Adds channel field to transactions.
+
+## 2.19.0
+
+* Adds country of issuance and issuing bank
+
+## 2.18.0
+
+* Add verification search
+
+## 2.17.0
+
+* Additional card information, such as prepaid, debit, commercial, Durbin regulated, healthcare, and payroll, are returned on credit card responses
+* Allows transactions to be specified as recurring
+
+## 2.16.0
+
+* Add prepaid attribute to credit card (possible values include Yes, No, Unknown)
+
 ## 2.15.1
 
 * Fix warnings for Visual Studio

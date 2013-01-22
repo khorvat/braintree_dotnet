@@ -10,6 +10,23 @@ namespace Braintree.Tests
     [TestFixture]
     public class CreditCardVerificationTest
     {
+        private BraintreeGateway gateway;
+        private BraintreeService service;
+
+        [SetUp]
+        public void Setup()
+        {
+            gateway = new BraintreeGateway
+            {
+                Environment = Environment.DEVELOPMENT,
+                MerchantId = "integration_merchant_id",
+                PublicKey = "integration_public_key",
+                PrivateKey = "integration_private_key"
+            };
+
+            service = new BraintreeService(gateway.Configuration);
+        }
+
         [Test]
         public void ConstructFromResponse()
         {
@@ -33,7 +50,7 @@ namespace Braintree.Tests
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(builder.ToString());
 
-            CreditCardVerification verification = new CreditCardVerification(new NodeWrapper(doc).GetNode("//verification"));
+            CreditCardVerification verification = new CreditCardVerification(new NodeWrapper(doc).GetNode("//verification"), service);
             Assert.AreEqual(null, verification.AvsErrorResponseCode);
             Assert.AreEqual("I", verification.AvsPostalCodeResponseCode);
             Assert.AreEqual(VerificationStatus.PROCESSOR_DECLINED, verification.Status);
@@ -57,7 +74,7 @@ namespace Braintree.Tests
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(builder.ToString());
 
-            CreditCardVerification verification = new CreditCardVerification(new NodeWrapper(doc).GetNode("//verification"));
+            CreditCardVerification verification = new CreditCardVerification(new NodeWrapper(doc).GetNode("//verification"), service);
             Assert.AreEqual(null, verification.AvsErrorResponseCode);
             Assert.AreEqual(null, verification.AvsPostalCodeResponseCode);
             Assert.AreEqual(null, verification.Status);
@@ -67,5 +84,85 @@ namespace Braintree.Tests
             Assert.AreEqual(null, verification.CvvResponseCode);
         }
 
+        [Test]
+        public void Search_OnMultipleValueFields()
+        {
+            var createRequest = new CustomerRequest
+            {
+                CreditCard = new CreditCardRequest
+                {
+                    Number = CreditCardNumbers.FailsSandboxVerification.Visa,
+                    ExpirationDate = "05/12",
+                    Options = new CreditCardOptionsRequest
+                    {
+                      VerifyCard = true
+                    }
+                }
+            };
+
+            Result<Customer> result = gateway.Customer.Create(createRequest);
+            CreditCardVerification verification1 = gateway.CreditCardVerification.Find(result.CreditCardVerification.Id);
+
+            createRequest = new CustomerRequest
+            {
+                CreditCard = new CreditCardRequest
+                {
+                    Number = CreditCardNumbers.FailsSandboxVerification.MasterCard,
+                    ExpirationDate = "05/12",
+                    Options = new CreditCardOptionsRequest
+                    {
+                      VerifyCard = true
+                    }
+                }
+            };
+
+            result = gateway.Customer.Create(createRequest);
+            CreditCardVerification verification2 = gateway.CreditCardVerification.Find(result.CreditCardVerification.Id);
+
+            CreditCardVerificationSearchRequest searchRequest = new CreditCardVerificationSearchRequest().
+                CreditCardCardType.IncludedIn(CreditCardCardType.VISA, CreditCardCardType.MASTER_CARD).
+                Ids.IncludedIn(verification1.Id, verification2.Id);
+
+            ResourceCollection<CreditCardVerification> collection = gateway.CreditCardVerification.Search(searchRequest);
+
+            Assert.AreEqual(2, collection.MaximumCount);
+        }
+
+        [Test]
+        public void CardTypeIndicators()
+        {
+            String name = Guid.NewGuid().ToString("n");
+            var createRequest = new CustomerRequest
+            {
+                CreditCard = new CreditCardRequest
+                {
+                    CardholderName = name,
+                    Number = CreditCardNumbers.CardTypeIndicators.Unknown,
+                    ExpirationDate = "05/12",
+                    Options = new CreditCardOptionsRequest
+                    {
+                      VerifyCard = true
+                    }
+                }
+            };
+
+            gateway.Customer.Create(createRequest);
+
+            CreditCardVerificationSearchRequest searchRequest = new CreditCardVerificationSearchRequest().
+                CreditCardCardholderName.Is(name);
+
+            ResourceCollection<CreditCardVerification> collection = gateway.CreditCardVerification.Search(searchRequest);
+
+            CreditCardVerification verification = collection.FirstItem;
+
+            Assert.AreEqual(verification.CreditCard.Prepaid, Braintree.CreditCardPrepaid.UNKNOWN);
+            Assert.AreEqual(verification.CreditCard.Debit, Braintree.CreditCardDebit.UNKNOWN);
+            Assert.AreEqual(verification.CreditCard.DurbinRegulated, Braintree.CreditCardDurbinRegulated.UNKNOWN);
+            Assert.AreEqual(verification.CreditCard.Commercial, Braintree.CreditCardCommercial.UNKNOWN);
+            Assert.AreEqual(verification.CreditCard.Healthcare, Braintree.CreditCardHealthcare.UNKNOWN);
+            Assert.AreEqual(verification.CreditCard.Payroll, Braintree.CreditCardPayroll.UNKNOWN);
+
+        }
     }
+
 }

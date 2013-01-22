@@ -101,6 +101,7 @@ namespace Braintree
         public String AvsPostalCodeResponseCode { get; protected set; }
         public String AvsStreetAddressResponseCode { get; protected set; }
         public Address BillingAddress { get; protected set; }
+        public String Channel { get; protected set; }
         public DateTime? CreatedAt { get; protected set; }
         public CreditCard CreditCard { get; protected set; }
         public String CurrencyIsoCode { get; protected set; }
@@ -116,6 +117,7 @@ namespace Braintree
         public String ProcessorResponseCode { get; protected set; }
         public String ProcessorResponseText { get; protected set; }
         public String PurchaseOrderNumber { get; protected set; }
+        public Boolean? Recurring { get; protected set; }
         public String RefundedTransactionId { get; protected set; }
         [Obsolete("Use Transaction.RefundIds")]
         public String RefundId { get; protected set; }
@@ -151,6 +153,7 @@ namespace Braintree
                 node.GetString("gateway-rejection-reason"),
                 null
             );
+            Channel = node.GetString("channel");
             OrderId = node.GetString("order-id");
             Status = (TransactionStatus)CollectionUtil.Find(TransactionStatus.ALL, node.GetString("status"), TransactionStatus.UNRECOGNIZED);
 
@@ -167,6 +170,7 @@ namespace Braintree
             ProcessorResponseCode = node.GetString("processor-response-code");
             ProcessorResponseText = node.GetString("processor-response-text");
             PurchaseOrderNumber = node.GetString("purchase-order-number");
+            Recurring = node.GetBoolean("recurring");
             RefundedTransactionId = node.GetString("refunded-transaction-id");
 
             #pragma warning disable 0618

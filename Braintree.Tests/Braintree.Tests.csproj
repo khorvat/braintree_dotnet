@@ -56,6 +56,8 @@
     <Compile Include="AddressTest.cs" />
     <Compile Include="ConfigurationTest.cs" />
     <Compile Include="CreditCardTest.cs" />
+    <Compile Include="CreditCardNumbers.cs" />
+    <Compile Include="CreditCardDefaults.cs" />
     <Compile Include="CreditCardVerificationTest.cs" />
     <Compile Include="CryptoTest.cs" />
     <Compile Include="CustomerTest.cs" />
